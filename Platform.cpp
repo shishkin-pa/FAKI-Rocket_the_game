@@ -1,13 +1,17 @@
 #include "Platform.h"
 
 Platform::Platform(float x, float y) {
-    shape.setSize(sf::Vector2f(200, 20));
+    shape.setSize(sf::Vector2f(600, 40));
     shape.setPosition(x, y);
     shape.setFillColor(sf::Color::White);
 }
 
 void Platform::draw(sf::RenderWindow& window) {
     window.draw(shape);
+}
+
+void Platform::setColor(const sf::Color& color) {
+    shape.setFillColor(color);
 }
 
 sf::FloatRect Platform::getBounds() const {

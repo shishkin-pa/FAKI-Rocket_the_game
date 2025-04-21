@@ -2,6 +2,7 @@
 #define ENGINE_H
 
 #include <SFML/Graphics.hpp>
+#include <vector>
 
 class Engine {
 public:
@@ -11,12 +12,18 @@ public:
     void draw(sf::RenderWindow& window, bool isExploded);
     void setFlameVisible(bool visible);
     void setTexture(const sf::Texture& texture);
-    void setFlameTexture(const sf::Texture& texture);
+    void setFlameTextures(const std::vector<const sf::Texture*>& textures); // Исправлено на const
+    void update(float deltaTime);
 
 private:
     sf::RectangleShape shape;
     sf::RectangleShape flame;
     bool flameVisible;
+    std::vector<const sf::Texture*> flameTextures;
+    int currentFlameFrame;
+    float flameAnimationTime;
+    float flameFrameDuration;
+    bool isStarting;
 };
 
 #endif // ENGINE_H
