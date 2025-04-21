@@ -11,13 +11,13 @@ Game::Game()
       explosionAnimationPlaying(false)
 {
     // Загрузка шрифта
-    if (!font.loadFromFile("HarreeghPoppedCyrillic.ttf")) {
+    if (!font.loadFromFile("fonts/HarreeghPoppedCyrillic.ttf")) {
         std::cerr << "Failed to load font! Using default." << std::endl;
-        font.loadFromFile("Arial.ttf");
+        font.loadFromFile("fonts/Arial.ttf");
     }
 
     // Загрузка фоновых текстур
-    if (!skyTexture.loadFromFile("sky.png")) {
+    if (!skyTexture.loadFromFile("textures/sky.png")) {
         std::cerr << "Failed to load sky texture!" << std::endl;
         sf::Image img;
         img.create(8400, 6000, sf::Color(100, 150, 255));
@@ -26,7 +26,7 @@ Game::Game()
     skySprite.setTexture(skyTexture);
     skySprite.setPosition(-4000, -4600);
 
-    if (!starsTexture.loadFromFile("stars.png")) {
+    if (!starsTexture.loadFromFile("textures/stars.png")) {
         std::cerr << "Failed to load stars texture!" << std::endl;
         sf::Image img;
         img.create(7826, 6000, sf::Color(10, 10, 30));
@@ -36,7 +36,7 @@ Game::Game()
     starsSprite.setPosition(-4000, -4600);
 
     // Загрузка текстуры взрыва
-    if (!explosionTexture.loadFromFile("explosion.png")) {
+    if (!explosionTexture.loadFromFile("textures/explosion.png")) {
         std::cerr << "Failed to load explosion texture!" << std::endl;
         sf::Image img;
         img.create(1, 1, sf::Color(255, 0, 0));
@@ -45,28 +45,28 @@ Game::Game()
     explosionSprite.setTexture(explosionTexture);
 
     // Загрузка текстур объектов
-    if (!boosterTexture.loadFromFile("booster.png") ||
-        !engineTexture.loadFromFile("engine.png") ||
-        !platformTexture.loadFromFile("platform.png") ||
-        !groundTexture.loadFromFile("ground.png")) {
+    if (!boosterTexture.loadFromFile("textures/booster.png") ||
+        !engineTexture.loadFromFile("textures/engine.png") ||
+        !platformTexture.loadFromFile("textures/platform.png") ||
+        !groundTexture.loadFromFile("textures/ground.png")) {
         std::cerr << "Failed to load object textures!" << std::endl;
     }
 
     // Загрузка текстур кнопок
-    if (!retryTexture.loadFromFile("retry.png")) {
+    if (!retryTexture.loadFromFile("textures/retry.png")) {
         std::cerr << "Failed to load retry button texture!" << std::endl;
     }
-    if (!restartTexture.loadFromFile("restart.png")) {
+    if (!restartTexture.loadFromFile("textures/restart.png")) {
         std::cerr << "Failed to load restart button texture!" << std::endl;
     }
-    if (!quitTexture.loadFromFile("quit.png")) {
+    if (!quitTexture.loadFromFile("textures/quit.png")) {
         std::cerr << "Failed to load quit button texture!" << std::endl;
     }
 
     // Загрузка текстур для анимации взрыва
     for (int i = 0; i < 7; ++i) {
         sf::Texture texture;
-        std::string filename = "explosion" + std::to_string(i) + ".png";
+        std::string filename = "textures/explosion" + std::to_string(i) + ".png";
         if (!texture.loadFromFile(filename)) {
             // Создаем простую текстуру, если загрузка не удалась
             sf::Image img;
@@ -512,7 +512,7 @@ const sf::Texture& Game::getFlameTexture(int index) const {
     if (flameTextures.empty()) {
         flameTextures.resize(6);
         for (int i = 0; i < 6; ++i) {
-            std::string filename = "flame" + std::to_string(i) + ".png";
+            std::string filename = "textures/flame" + std::to_string(i) + ".png";
             if (!flameTextures[i].loadFromFile(filename)) {
                 // Создаем прозрачную текстуру, если загрузка не удалась
                 sf::Image img;

@@ -60,6 +60,8 @@ private:
     sf::Texture splashTexture;
     sf::RectangleShape splashScreen;
     bool showSplash;
+
+    void updateSliderColor();
 };
 
 #endif // MENUSCREEN_H

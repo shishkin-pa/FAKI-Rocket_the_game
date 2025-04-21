@@ -6,10 +6,10 @@
 MenuScreen::MenuScreen(sf::RenderWindow& window, sf::Font& font)
     : window(window), font(font), menuActive(true), menuStep(0),
       engineTiltEnabled(true), windEnabled(false), windForce(0.f, 0.f),
-      gravity(200.0f), isDraggingSlider(false), showSplash(true) {
+      gravity(200.0f), isDraggingSlider(false), showSplash(true){
     
     // Загрузка текстуры заставки
-    if (!splashTexture.loadFromFile("splash.png")) {
+    if (!splashTexture.loadFromFile("textures/splash.png")) {
         std::cerr << "Failed to load splash.png" << std::endl;
         // Создаем черный экран, если заставка не загрузилась
         sf::Image img;
@@ -21,32 +21,33 @@ MenuScreen::MenuScreen(sf::RenderWindow& window, sf::Font& font)
     splashScreen.setTexture(&splashTexture);
     
     // Загрузка текстур
-    if (!tiltYesTexture.loadFromFile("tilt_yes.png")) {
+    if (!tiltYesTexture.loadFromFile("textures/tilt_yes.png")) {
         std::cerr << "Failed to load tilt_yes.png" << std::endl;
     }
-    if (!tiltNoTexture.loadFromFile("tilt_no.png")) {
+    if (!tiltNoTexture.loadFromFile("textures/tilt_no.png")) {
         std::cerr << "Failed to load tilt_no.png" << std::endl;
     }
-    if (!windNoneTexture.loadFromFile("wind_none.png")) {
+    if (!windNoneTexture.loadFromFile("textures/wind_none.png")) {
         std::cerr << "Failed to load wind_none.png" << std::endl;
     }
-    if (!windWeakTexture.loadFromFile("wind_weak.png")) {
+    if (!windWeakTexture.loadFromFile("textures/wind_weak.png")) {
         std::cerr << "Failed to load wind_weak.png" << std::endl;
     }
-    if (!windModerateTexture.loadFromFile("wind_moderate.png")) {
+    if (!windModerateTexture.loadFromFile("textures/wind_moderate.png")) {
         std::cerr << "Failed to load wind_moderate.png" << std::endl;
     }
-    if (!windStrongTexture.loadFromFile("wind_strong.png")) {
+    if (!windStrongTexture.loadFromFile("textures/wind_strong.png")) {
         std::cerr << "Failed to load wind_strong.png" << std::endl;
     }
-    if (!startGameTexture.loadFromFile("start_game.png")) {
+    if (!startGameTexture.loadFromFile("textures/start_game.png")) {
         std::cerr << "Failed to load start_game.png" << std::endl;
     }
-    if (!gravityMinTexture.loadFromFile("gravity_min.png")) {
+    if (!gravityMinTexture.loadFromFile("textures/gravity_min.png")) {
         std::cerr << "Failed to load gravity_min.png" << std::endl;
     }
 
     createMenu();
+    updateSliderColor();
 }
 
 void MenuScreen::createMenu() {
@@ -243,13 +244,11 @@ void MenuScreen::handleEvent(sf::Event& event) {
         float newX = std::max(gravitySliderTrack.getPosition().x,
                             std::min(mousePos.x, 
                                     gravitySliderTrack.getPosition().x + gravitySliderTrack.getSize().x));
-        gravitySliderHandle.setPosition(newX - 10, gravitySliderHandle.getPosition().y); // -10 для центровки
+        gravitySliderHandle.setPosition(newX - 10, gravitySliderHandle.getPosition().y);
         gravity = (newX - gravitySliderTrack.getPosition().x) / gravitySliderTrack.getSize().x * 400.0f;
         
-        // Обновляем цвет
-        gravitySliderHandle.setFillColor(
-            (gravity < 190 || gravity > 210) ? sf::Color::Red : sf::Color::Green
-        );
+        // Обновляем цвет после изменения положения
+        updateSliderColor();
     }
 }
 
@@ -316,9 +315,20 @@ void MenuScreen::resetMenu() {
     // 2. Пересоздаем элементы меню
     createMenu();
     
-    // 3. Сбрасываем настройки к значениям по умолчанию
+    // 3. Сбрасываем настройки к значениям по умолчанию, но сохраняем текущее значение гравитации
+    float currentGravity = gravity;
     engineTiltEnabled = true;
     windEnabled = false;
     windForce = sf::Vector2f(0.f, 0.f);
-    gravity = 200.0f;
+    gravity = currentGravity; // Восстанавливаем значение
+    
+    // 4. Обновляем цвет слайдера в соответствии с текущим значением
+    updateSliderColor();
+}
+
+// Новый метод для обновления цвета слайдера
+void MenuScreen::updateSliderColor() {
+    gravitySliderHandle.setFillColor(
+        (gravity >= 190 && gravity <= 210) ? sf::Color::Green : sf::Color::Red
+    );
 }
