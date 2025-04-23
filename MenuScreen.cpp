@@ -3,24 +3,26 @@
 #include <ctime>
 #include <iostream>
 
+// Конструктор меню
 MenuScreen::MenuScreen(sf::RenderWindow& window, sf::Font& font)
     : window(window), font(font), menuActive(true), menuStep(0),
       engineTiltEnabled(true), windEnabled(false), windForce(0.f, 0.f),
-      gravity(200.0f), isDraggingSlider(false), showSplash(true){
+      gravity(200.0f), isDraggingSlider(false), showSplash(true) {
     
     // Загрузка текстуры заставки
     if (!splashTexture.loadFromFile("textures/splash.png")) {
         std::cerr << "Failed to load splash.png" << std::endl;
-        // Создаем черный экран, если заставка не загрузилась
+        // Создание черного экрана при ошибке загрузки
         sf::Image img;
         img.create(1, 1, sf::Color::Black);
         splashTexture.loadFromImage(img);
     }
     
+    // Настройка спрайта заставки
     splashScreen.setSize(sf::Vector2f(window.getSize()));
     splashScreen.setTexture(&splashTexture);
     
-    // Загрузка текстур
+    // Загрузка текстур кнопок
     if (!tiltYesTexture.loadFromFile("textures/tilt_yes.png")) {
         std::cerr << "Failed to load tilt_yes.png" << std::endl;
     }
@@ -46,17 +48,19 @@ MenuScreen::MenuScreen(sf::RenderWindow& window, sf::Font& font)
         std::cerr << "Failed to load gravity_min.png" << std::endl;
     }
 
+    // Создание элементов меню
     createMenu();
     updateSliderColor();
 }
 
+// Создание элементов меню
 void MenuScreen::createMenu() {
-    // Явно получаем текущие размеры окна
+    // Получение размеров окна
     const sf::Vector2u windowSize = window.getSize();
     const float centerX = windowSize.x / 2.0f;
     const float centerY = windowSize.y / 2.0f;
 
-    // Кнопки наклона двигателя
+    // Настройка кнопок наклона двигателя
     tiltYesButton.setSize(sf::Vector2f(312, 312));
     tiltYesButton.setPosition(centerX - 350, centerY - 156);
     tiltYesButton.setTexture(&tiltYesTexture);
@@ -65,12 +69,13 @@ void MenuScreen::createMenu() {
     tiltNoButton.setPosition(centerX + 38, centerY - 156);
     tiltNoButton.setTexture(&tiltNoTexture);
 
-    // Кнопки ветра
+    // Настройка кнопок ветра
     windButtons.clear();
     const std::vector<sf::Texture*> windTextures = {
         &windNoneTexture, &windWeakTexture, &windModerateTexture, &windStrongTexture
     };
     
+    // Расчет позиций кнопок ветра
     const float totalWidth = 4 * 312 + 3 * 40;
     const float startX = centerX - totalWidth / 2;
     
@@ -81,75 +86,83 @@ void MenuScreen::createMenu() {
         windButtons.push_back(button);
     }
 
-    // Гравитация
+    // Настройка кнопки минимальной гравитации
     gravityMinButton.setSize(sf::Vector2f(312, 312));
     gravityMinButton.setPosition(centerX - 156, centerY - 364);
     gravityMinButton.setTexture(&gravityMinTexture);
 
-    // Слайдер гравитации (трек)
+    // Настройка трека слайдера гравитации
     gravitySliderTrack.setSize(sf::Vector2f(624, 20));
     gravitySliderTrack.setPosition(centerX - 312, centerY);
     gravitySliderTrack.setFillColor(sf::Color(100, 100, 100));
-    gravitySliderTrack.setOutlineThickness(5);  // Чёрный контур по умолчанию
+    gravitySliderTrack.setOutlineThickness(5);
     gravitySliderTrack.setOutlineColor(sf::Color::Black);
 
-    // Слайдер гравитации (заполнение)
+    // Настройка заполненной части слайдера
     gravitySlider.setSize(sf::Vector2f(624, 20));
     gravitySlider.setPosition(centerX - 312, centerY);
     gravitySlider.setFillColor(sf::Color::White);
-    gravitySlider.setOutlineThickness(5);  // Чёрный контур
+    gravitySlider.setOutlineThickness(5);
     gravitySlider.setOutlineColor(sf::Color::Black);
 
-    // Ползунок слайдера
+    // Настройка ползунка слайдера
     gravitySliderHandle.setSize(sf::Vector2f(20, 40));
     gravitySliderHandle.setPosition(centerX - 312 + (gravity / 400.0f) * gravitySlider.getSize().x, centerY - 10);
     gravitySliderHandle.setFillColor(sf::Color::Green);
-    gravitySliderHandle.setOutlineThickness(3);  // Контур тоньше для ползунка
+    gravitySliderHandle.setOutlineThickness(3);
     gravitySliderHandle.setOutlineColor(sf::Color::Black);
 
-    // Стартовая кнопка
+    // Настройка кнопки старта
     startButton.setSize(sf::Vector2f(312, 312));
     startButton.setPosition(centerX - 156, centerY + 64);
     startButton.setTexture(&startGameTexture);
 
-    // Сбрасываем состояние всех кнопок
+    // Обновление состояния кнопок
     updateButtonHover();
 }
 
+// Отрисовка меню
 void MenuScreen::draw() {
     if (!menuActive) return;
 
+    // Очистка экрана
     window.clear(sf::Color(50, 50, 50));
 
+    // Отрисовка заставки или меню
     if (showSplash) {
         window.draw(splashScreen);
     }
     else {
-        // Отрисовка обычного меню
-        if (menuStep == 0) {
-            window.draw(tiltYesButton);
-            window.draw(tiltNoButton);
-        }
-        else if (menuStep == 1) {
-            for (auto& button : windButtons) {
-                window.draw(button);
-            }
-        }
-        else if (menuStep == 2) {
-            window.draw(gravityMinButton);
-            window.draw(gravitySliderTrack);
-            window.draw(gravitySlider);
-            window.draw(gravitySliderHandle);
-            window.draw(startButton);
+        // Отрисовка текущего шага меню
+        switch (menuStep) {
+            case 0: // Шаг 1 - выбор наклона двигателей
+                window.draw(tiltYesButton);
+                window.draw(tiltNoButton);
+                break;
+            case 1: // Шаг 2 - выбор ветра
+                for (auto& button : windButtons) {
+                    window.draw(button);
+                }
+                break;
+            case 2: // Шаг 3 - настройка гравитации и старт
+                window.draw(gravityMinButton);
+                window.draw(gravitySliderTrack);
+                window.draw(gravitySlider);
+                window.draw(gravitySliderHandle);
+                window.draw(startButton);
+                break;
         }
     }
 
+    // Отображение на экране
     window.display();
 }
 
+// Обработка событий меню
 void MenuScreen::handleEvent(sf::Event& event) {
     if (!menuActive) return;
 
+    // Пропуск заставки по любому нажатию
     if (showSplash) {
         if (event.type == sf::Event::KeyPressed || 
             event.type == sf::Event::MouseButtonPressed) {
@@ -158,88 +171,89 @@ void MenuScreen::handleEvent(sf::Event& event) {
         return;
     }
 
+    // Обновление состояния наведения
     updateButtonHover();
 
+    // Обработка нажатий мыши
     if (event.type == sf::Event::MouseButtonPressed) {
         sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
 
-        if (menuStep == 0) {
-            if (tiltYesButton.getGlobalBounds().contains(mousePos)) {
-                engineTiltEnabled = true;
-                menuStep = 1;
-            }
-            else if (tiltNoButton.getGlobalBounds().contains(mousePos)) {
-                engineTiltEnabled = false;
-                menuStep = 1;
-            }
-        }
-        else if (menuStep == 1) {
-            for (size_t i = 0; i < windButtons.size(); ++i) {
-                if (windButtons[i].getGlobalBounds().contains(mousePos)) {
-                    switch (i) {
-                        case 0: 
-                            windEnabled = false; 
-                            windForce = sf::Vector2f(0.f, 0.f); 
-                            break;
-                        case 1: 
-                            windEnabled = true; 
-                            windForce = sf::Vector2f(
-                                static_cast<float>((std::rand()%10+1)*2), 
-                                static_cast<float>(std::rand()%10+1)
-                            ); 
-                            break;
-                        case 2: 
-                            windEnabled = true; 
-                            windForce = sf::Vector2f(
-                                static_cast<float>((std::rand()%15+5)*2), 
-                                static_cast<float>(std::rand()%15+5)
-                            ); 
-                            break;
-                        case 3: 
-                            windEnabled = true; 
-                            windForce = sf::Vector2f(
-                                static_cast<float>((std::rand()%20+10)*2), 
-                                static_cast<float>(std::rand()%20+10)
-                            ); 
-                            break;
-                    }
-                    menuStep = 2;
-                    break;
+        // Обработка в зависимости от текущего шага меню
+        switch (menuStep) {
+            case 0: // Выбор наклона двигателей
+                if (tiltYesButton.getGlobalBounds().contains(mousePos)) {
+                    engineTiltEnabled = true;
+                    menuStep = 1;
                 }
-            }
-        }
-        else if (menuStep == 2) {
-            // Обработка клика по ползунку или треку слайдера
-            if (gravitySliderHandle.getGlobalBounds().contains(mousePos)) {
-                isDraggingSlider = true;
-            }
-            else if (gravitySliderTrack.getGlobalBounds().contains(mousePos)) {
-                // Новый функционал: клик по треку мгновенно перемещает ползунок
-                float relativeX = mousePos.x - gravitySliderTrack.getPosition().x;
-                float percent = std::max(0.f, std::min(1.f, relativeX / gravitySliderTrack.getSize().x));
-                
-                gravity = percent * 400.0f;
-                gravitySliderHandle.setPosition(
-                    gravitySliderTrack.getPosition().x + percent * gravitySliderTrack.getSize().x - 10, // -10 для центровки
-                    gravitySliderHandle.getPosition().y
-                );
-                
-                // Обновляем цвет
-                gravitySliderHandle.setFillColor(
-                    (gravity < 190 || gravity > 210) ? sf::Color::Red : sf::Color::Green
-                );
-                
-                isDraggingSlider = true;
-            }
-            else if (startButton.getGlobalBounds().contains(mousePos)) {
-                menuActive = false;
-            }
+                else if (tiltNoButton.getGlobalBounds().contains(mousePos)) {
+                    engineTiltEnabled = false;
+                    menuStep = 1;
+                }
+                break;
+            case 1: // Выбор ветра
+                for (size_t i = 0; i < windButtons.size(); ++i) {
+                    if (windButtons[i].getGlobalBounds().contains(mousePos)) {
+                        switch (i) {
+                            case 0: // Нет ветра
+                                windEnabled = false; 
+                                windForce = sf::Vector2f(0.f, 0.f); 
+                                break;
+                            case 1: // Слабый ветер
+                                windEnabled = true; 
+                                windForce = sf::Vector2f(
+                                    static_cast<float>((std::rand()%10+1)*2), 
+                                    static_cast<float>(std::rand()%10+1)
+                                ); 
+                                break;
+                            case 2: // Умеренный ветер
+                                windEnabled = true; 
+                                windForce = sf::Vector2f(
+                                    static_cast<float>((std::rand()%15+5)*2), 
+                                    static_cast<float>(std::rand()%15+5)
+                                ); 
+                                break;
+                            case 3: // Сильный ветер
+                                windEnabled = true; 
+                                windForce = sf::Vector2f(
+                                    static_cast<float>((std::rand()%20+10)*2), 
+                                    static_cast<float>(std::rand()%20+10)
+                                ); 
+                                break;
+                        }
+                        menuStep = 2;
+                        break;
+                    }
+                }
+                break;
+            case 2: // Настройка гравитации и старт
+                if (gravitySliderHandle.getGlobalBounds().contains(mousePos)) {
+                    isDraggingSlider = true;
+                }
+                else if (gravitySliderTrack.getGlobalBounds().contains(mousePos)) {
+                    // Клик по треку - мгновенное перемещение ползунка
+                    float relativeX = mousePos.x - gravitySliderTrack.getPosition().x;
+                    float percent = std::max(0.f, std::min(1.f, relativeX / gravitySliderTrack.getSize().x));
+                    
+                    gravity = percent * 400.0f;
+                    gravitySliderHandle.setPosition(
+                        gravitySliderTrack.getPosition().x + percent * gravitySliderTrack.getSize().x - 10,
+                        gravitySliderHandle.getPosition().y
+                    );
+                    
+                    updateSliderColor();
+                    isDraggingSlider = true;
+                }
+                else if (startButton.getGlobalBounds().contains(mousePos)) {
+                    menuActive = false; // Запуск игры
+                }
+                break;
         }
     }
     else if (event.type == sf::Event::MouseButtonReleased) {
-        isDraggingSlider = false;
+        isDraggingSlider = false; // Окончание перетаскивания
     }
     else if (event.type == sf::Event::MouseMoved && isDraggingSlider) {
+        // Перетаскивание ползунка
         sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
         float newX = std::max(gravitySliderTrack.getPosition().x,
                             std::min(mousePos.x, 
@@ -247,86 +261,93 @@ void MenuScreen::handleEvent(sf::Event& event) {
         gravitySliderHandle.setPosition(newX - 10, gravitySliderHandle.getPosition().y);
         gravity = (newX - gravitySliderTrack.getPosition().x) / gravitySliderTrack.getSize().x * 400.0f;
         
-        // Обновляем цвет после изменения положения
         updateSliderColor();
     }
 }
 
+// Обновление состояния наведения на кнопки
 void MenuScreen::updateButtonHover() {
     sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
-    const sf::Color hoverColor(50, 100, 150); // Тёмно-голубой цвет контура
+    const sf::Color hoverColor(50, 100, 150); // Цвет контура при наведении
 
-    if (menuStep == 0) {
-        tiltYesButton.setOutlineThickness(tiltYesButton.getGlobalBounds().contains(mousePos) ? 5 : 0);
-        tiltYesButton.setOutlineColor(hoverColor); // Устанавливаем цвет
-        
-        tiltNoButton.setOutlineThickness(tiltNoButton.getGlobalBounds().contains(mousePos) ? 5 : 0);
-        tiltNoButton.setOutlineColor(hoverColor);
-    }
-    else if (menuStep == 1) {
-        for (auto& button : windButtons) {
-            button.setOutlineThickness(button.getGlobalBounds().contains(mousePos) ? 5 : 0);
-            button.setOutlineColor(hoverColor);
-        }
-    }
-    else if (menuStep == 2) {
-        startButton.setOutlineThickness(startButton.getGlobalBounds().contains(mousePos) ? 5 : 0);
-        startButton.setOutlineColor(hoverColor);
-        
-        gravityMinButton.setOutlineThickness(gravityMinButton.getGlobalBounds().contains(mousePos) ? 5 : 0);
-        gravityMinButton.setOutlineColor(hoverColor);
+    // Обновление состояния кнопок в зависимости от текущего шага
+    switch (menuStep) {
+        case 0: // Шаг 1 - наклон двигателей
+            tiltYesButton.setOutlineThickness(tiltYesButton.getGlobalBounds().contains(mousePos) ? 5 : 0);
+            tiltYesButton.setOutlineColor(hoverColor);
+            tiltNoButton.setOutlineThickness(tiltNoButton.getGlobalBounds().contains(mousePos) ? 5 : 0);
+            tiltNoButton.setOutlineColor(hoverColor);
+            break;
+        case 1: // Шаг 2 - ветер
+            for (auto& button : windButtons) {
+                button.setOutlineThickness(button.getGlobalBounds().contains(mousePos) ? 5 : 0);
+                button.setOutlineColor(hoverColor);
+            }
+            break;
+        case 2: // Шаг 3 - гравитация и старт
+            startButton.setOutlineThickness(startButton.getGlobalBounds().contains(mousePos) ? 5 : 0);
+            startButton.setOutlineColor(hoverColor);
+            gravityMinButton.setOutlineThickness(gravityMinButton.getGlobalBounds().contains(mousePos) ? 5 : 0);
+            gravityMinButton.setOutlineColor(hoverColor);
+            break;
     }
 }
 
+// Проверка активности меню
 bool MenuScreen::isMenuActive() const {
     return menuActive;
 }
 
+// Установка активности меню
 void MenuScreen::setMenuActive(bool active) {
     menuActive = active;
     if (active) {
-        menuStep = 0;
+        menuStep = 0; // Сброс к первому шагу
     }
 }
 
+// Проверка включения наклона двигателей
 bool MenuScreen::isEngineTiltEnabled() const {
     return engineTiltEnabled;
 }
 
+// Проверка включения ветра
 bool MenuScreen::isWindEnabled() const {
     return windEnabled;
 }
 
+// Получение силы ветра
 sf::Vector2f MenuScreen::getWindForce() const {
     return windForce;
 }
 
+// Получение значения гравитации
 float MenuScreen::getGravity() const {
     return gravity;
 }
 
+// Сброс меню
 void MenuScreen::resetMenu() {
-    // 1. Сбрасываем состояние
+    // Сброс состояния
     menuActive = true;
     menuStep = 0;
     showSplash = true;
     isDraggingSlider = false;
     
-    // 2. Пересоздаем элементы меню
+    // Пересоздание элементов
     createMenu();
     
-    // 3. Сбрасываем настройки к значениям по умолчанию, но сохраняем текущее значение гравитации
+    // Сброс настроек (кроме гравитации)
     float currentGravity = gravity;
     engineTiltEnabled = true;
     windEnabled = false;
     windForce = sf::Vector2f(0.f, 0.f);
-    gravity = currentGravity; // Восстанавливаем значение
+    gravity = currentGravity;
     
-    // 4. Обновляем цвет слайдера в соответствии с текущим значением
     updateSliderColor();
 }
 
-// Новый метод для обновления цвета слайдера
+// Обновление цвета слайдера гравитации
 void MenuScreen::updateSliderColor() {
     gravitySliderHandle.setFillColor(
         (gravity >= 190 && gravity <= 210) ? sf::Color::Green : sf::Color::Red
