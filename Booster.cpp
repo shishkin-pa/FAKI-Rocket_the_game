@@ -189,7 +189,7 @@ void Booster::explode() {
         exploded = true;
         shape.setFillColor(sf::Color::Transparent); // Скрытие бустера
         std::cout << "BOOM! The booster has exploded!" << std::endl;
-        if (game) game->showExitButton("BOOM! The booster has exploded!", sf::Color::Red);
+        if (game) game->showExitButton("BOOM! The rocket has exploded!", sf::Color::Red);
     }
 }
 
